@@ -90,6 +90,10 @@
 
   /* DONUT */
   .donut-section { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.5rem; }
+  @media (max-width: 768px) {
+    .donut-section { grid-template-columns: 1fr; }
+  }
+  .donut-label-top3 { white-space: pre-line; }
   .donut-card { background: #fff; border-radius: 12px; border: 1px solid var(--linen); padding: 1.25rem; }
 
   /* TRANSACTIONS */
@@ -112,11 +116,12 @@
   .tx-date { font-size: 11px; color: var(--ink-soft); margin-top: 1px; }
 
   /* BUDGET */
-  .budget-list { display: flex; flex-direction: column; gap: 16px; }
-  .budget-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+  .budget-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .budget-card { background: #fff; border-radius: 10px; border: 1px solid var(--linen); padding: 1rem; }
+  .budget-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 0.5rem; }
   .budget-cat { font-size: 13px; font-weight: 500; }
-  .budget-nums { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink-soft); }
-  .budget-over { color: var(--red); font-size: 11px; margin-left: 6px; }
+  .budget-nums { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ink-soft); }
+  .budget-over { color: var(--red); font-size: 10px; display: block; margin-top: 2px; }
   .progress-track { height: 6px; background: var(--linen); border-radius: 3px; overflow: hidden; }
   .progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
   .budget-summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 1.5rem; }
@@ -250,7 +255,7 @@
           <div class="chart-title" style="margin-bottom:12px;font-size:13px;">Breakdown</div>
           <div id="savings-panel" 
               style="display:flex;flex-direction:column;justify-content:flex-start;gap:10px;
-                      max-height:100vh;overflow-y:auto;">
+                      max-height:200px;overflow-y:auto;">
             <!-- Dynamic content inserted here -->
           </div>
         </div>
@@ -268,6 +273,12 @@
           <button class="filter-chip" onclick="setTxType('credit',this)">Income</button>
           <button class="filter-chip" onclick="setTxType('debit',this)">Expenses</button>
         </div>
+      </div>
+      <div class="tx-month-filter" style="padding:0.6rem 1.25rem; border-bottom:0.5px solid var(--border); display:flex; align-items:center; gap:8px;">
+        <span style="font-size:11px;color:var(--ink-soft);">Month:</span>
+        <select id="tx-month-dropdown" onchange="setTxMonth(this.value)" style="padding:5px 10px;border-radius:8px;border:1px solid var(--linen);font-family:'DM Sans',sans-serif;font-size:12px;background:var(--cream);color:var(--ink);cursor:pointer;">
+          <option value="all">All months</option>
+        </select>
       </div>
       <div class="tx-cat-row" id="tx-cat-row" style="display:none; padding:0.6rem 1.25rem; border-bottom:0.5px solid var(--border); gap:6px; flex-wrap:wrap; align-items:center;">
         <span style="font-size:11px;color:var(--ink-soft);margin-right:4px;">Category:</span>
@@ -520,7 +531,8 @@ function refreshAll() {
     buildDonut();
     buildSavingsPanel();
   }
-  txTypeFilter = 'all'; txCatFilter = 'all';
+  txTypeFilter = 'all'; txCatFilter = 'all'; txMonthFilter = 'all';
+  populateTxMonthFilter();
   buildTransactions();
   rebuildCatChips();
   document.querySelectorAll('#tx-type-chips .filter-chip').forEach((b,i) => b.classList.toggle('active', i===0));
@@ -564,13 +576,25 @@ function buildOverviewChart() {
   });
   const keys = Object.keys(monthMap2).sort().slice(-12);
   const maxV = Math.max(...keys.map(k=>Math.max(monthMap2[k].income,monthMap2[k].spend)), 1);
+  
+  const formatK = (val, roundDown = false) => {
+    const rounded = roundDown ? Math.floor(val/100)/10 : Math.ceil(val/100)/10;
+    return rounded.toFixed(1).replace(/\.0$/, '') + 'k';
+  };
+  
   c.innerHTML = keys.map(k => {
     const ih    = Math.round((monthMap2[k].income/maxV)*110);
     const sh    = Math.round((monthMap2[k].spend/maxV)*110);
     const label = (labelMap2[k]||k).split(' ')[0];
+    const incomeLabel = formatK(monthMap2[k].income, true);
+    const expenseLabel = formatK(monthMap2[k].spend, false);
     return `<div class="month-group"><div class="month-bars">
-      <div class="m-bar" style="height:${ih}px;background:#3D2314;" title="Income ${rm(monthMap2[k].income)} — ${labelMap2[k]||k}"></div>
-      <div class="m-bar" style="height:${sh}px;background:#C4A882;" title="Expenses ${rm(monthMap2[k].spend)} — ${labelMap2[k]||k}"></div>
+      <div class="m-bar" style="height:${ih}px;background:#3D2314;position:relative;" title="Income ${rm(monthMap2[k].income)} — ${labelMap2[k]||k}">
+        <div style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:10px;color:#3D2314;font-weight:600;white-space:nowrap;">${incomeLabel}</div>
+      </div>
+      <div class="m-bar" style="height:${sh}px;background:#C4A882;position:relative;" title="Expenses ${rm(monthMap2[k].spend)} — ${labelMap2[k]||k}">
+        <div style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:10px;color:#C4A882;font-weight:600;white-space:nowrap;">${expenseLabel}</div>
+      </div>
     </div><div class="m-label">${label}</div></div>`;
   }).join('');
 }
@@ -624,6 +648,7 @@ function buildSavingsPanel() {
 // ═══════════════════════════════════════════════════════
 let txTypeFilter = 'all';
 let txCatFilter  = 'all';
+let txMonthFilter = 'all';
 
 function buildTransactions() {
   const list = document.getElementById('tx-list');
@@ -644,6 +669,9 @@ function buildTransactions() {
 
   // Apply category filter
   if (txCatFilter !== 'all') src = src.filter(t => t.cat === txCatFilter);
+  
+  // Apply month filter
+  if (txMonthFilter !== 'all') src = src.filter(t => t.monthKey === txMonthFilter);
 
   if (!src.length) {
     list.innerHTML = '<div class="empty-state"><div class="big">📭</div>No transactions match this filter.</div>';
@@ -659,6 +687,11 @@ function buildTransactions() {
         <div class="tx-date">${t.date}</div>
       </div>
     </div>`).join('');
+}
+
+function setTxMonth(month) {
+  txMonthFilter = month;
+  buildTransactions();
 }
 
 function setTxType(type, btn) {
@@ -741,7 +774,7 @@ function buildBudget() {
     const pct    = Math.min(Math.round((spent/limit)*100), 100);
     const over   = spent > limit;
     const color  = over ? '#B84040' : (pct > 80 ? '#C4722A' : '#9B7243');
-    return `<div class="budget-item">
+    return `<div class="budget-card">
       <div class="budget-row">
         <div class="budget-cat">${catIcon(cat)} ${cat}</div>
         <div class="budget-nums">
@@ -752,6 +785,24 @@ function buildBudget() {
       <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${color};"></div></div>
     </div>`;
   }).join('');
+}
+
+function populateTxMonthFilter() {
+  const sel = document.getElementById('tx-month-dropdown');
+  if (!sel || !transactions.length) return;
+  
+  const months = [...new Set(transactions.map(t => t.monthKey))].sort().reverse();
+  const current = sel.value;
+  
+  sel.innerHTML = '<option value="all">All months</option>' +
+    months.map(k => {
+      const label = (transactions.find(t => t.monthKey === k) || {}).monthLabel || k;
+      return `<option value="${k}">${label}</option>`;
+    }).join('');
+  
+  if (months.includes(current)) sel.value = current;
+  else if (months.length > 0) { sel.value = months[0]; txMonthFilter = months[0]; }
+  else sel.value = 'all';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -765,7 +816,7 @@ function populateRankMonthFilter() {
     transactions
       .filter(t => t.type === 'debit' && t.monthKey && t.monthKey.startsWith('2026-'))
       .map(t => t.monthKey)
-  )].sort();
+  )].sort().reverse();
   const current = sel.value;
   sel.innerHTML = '<option value="all">All months</option>' +
     months2026.map(k => {
@@ -774,6 +825,7 @@ function populateRankMonthFilter() {
     }).join('');
   // Restore selection if still valid
   if (months2026.includes(current)) sel.value = current;
+  else if (months2026.length > 0) sel.value = months2026[0];
   else sel.value = 'all';
 }
 
