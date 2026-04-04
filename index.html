@@ -458,42 +458,29 @@ function processRows(rows, filename) {
     // Parse date robustly
     const rawDate = row[dCol];
     let parsedDate = null;
-    if (rawDate instanceof Date && !isNaN(rawDate)) {
-      parsedDate = rawDate;
-    } else {
-      const s = String(rawDate).trim();
-      if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
-        const attempt = new Date(s + (s.length === 10 ? 'T00:00:00' : ''));
-        if (!isNaN(attempt)) parsedDate = attempt;
-      }
-      if (!parsedDate) {
-        const parts = s.split(/[\/\-\.]/);
-        if (parts.length === 3) {
-          const [a, b, c] = parts.map(x => parseInt(x, 10));
-          if (a <= 31 && b <= 12 && c > 99) {
-            const attempt = new Date(c, b - 1, a);
-            if (!isNaN(attempt)) parsedDate = attempt;
-          }
-        }
-      }
-      if (!parsedDate) {
-        const attempt = new Date(s);
-        if (!isNaN(attempt)) parsedDate = attempt;
-      }
+
+    if (rawDate instanceof Date) {
+      parsedDate = rawDate; // already a JS date
+    } else if (typeof rawDate === "number") {
+      parsedDate = excelDateToJSDate(rawDate); // convert Excel serial number
     }
 
-    let dateStr = '', monthKey = '', monthLabel = '';
+    // Subtract one day to correct Excel/Timezone offset
     if (parsedDate) {
-      const y = parsedDate.getFullYear(), m = parsedDate.getMonth(), day = parsedDate.getDate();
-      dateStr    = String(day).padStart(2,'0') + ' ' + MONTH_NAMES[m] + ' ' + y;
-      monthKey   = y + '-' + String(m + 1).padStart(2, '0');
-      monthLabel = MONTH_NAMES[m] + ' ' + y;
-    } else {
-      dateStr    = String(rawDate).slice(0, 10);
-      monthKey   = dateStr.slice(0, 7);
-      monthLabel = monthKey;
+      parsedDate.setDate(parsedDate.getDate() + 1);
     }
-    return { name: String(row[nCol] || '—').trim(), cat, amount: amt, type, date: dateStr, monthKey, monthLabel, parsedDate, icon: catIcon(cat), bg: catBg(cat) };
+
+    // Format
+    const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const y = parsedDate.getFullYear();
+    const m = parsedDate.getMonth();
+    const d = parsedDate.getDate();
+
+    const dateStr    = String(d).padStart(2,'0') + ' ' + MONTH_NAMES[m] + ' ' + y;
+    const monthKey   = y + '-' + String(m + 1).padStart(2,'0');
+    const monthLabel = MONTH_NAMES[m] + ' ' + y;
+    
+    return { name: String(row[nCol] || '—').trim(), cat, amount: amt, type, date: dateStr, monthKey, monthLabel, rawDate, icon: catIcon(cat), bg: catBg(cat) };
   }).filter(r => r.amount > 0);
 
   if (!mapped.length) { alert('No valid rows found. Make sure your file has Date, Description, Amount, and Category columns.'); return; }
