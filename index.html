@@ -310,7 +310,7 @@
         <div style="font-size:11px;color:var(--ink-soft);" id="budget-month-label"></div>
       </div>
       <div class="budget-list" id="budget-list">
-        <div class="empty-state"><div class="big">🥷🏻</div>It won't magically appear, you need to upload it...</div>
+        <div class="empty-state"><div class="big"></div></div>
       </div>
     </div>
   </div>
@@ -369,7 +369,7 @@
       <div style="font-size:11px;color:var(--ink-soft);" id="wordfreq-count"></div>
     </div>
     <div class="wordfreq-list" id="wordfreq-list">
-      <div class="empty-state"><div class="big">📚</div>No data yet. Import a file to see word frequency.</div>
+      <div class="empty-state"><div class="big">🥷</div>/Swoosh/</div>
     </div>
     <div id="wordfreq-detail" style="display:none;margin-top:1.5rem;">
       <div class="chart-wrap">
@@ -425,16 +425,16 @@ const CAT_COLORS = {
 };
 const FALLBACK_COLORS = ['#3D2314','#7B5835','#9B7243','#C4722A','#C4A882','#2C3E6B','#C97B5A','#8FA88A','#4A6380','#A67C52'];
 const CAT_BG = {
-  'Salary':'#F0E6C8','Parents':'#EDE0CC','Fixed Deposit':'#F5EBD8','Others':'#EAF0E8',
-  'Food & Drinks':'#F7E8DC','Groceries':'#F5EDD8','Family Meals & Gifts':'#F2E8D4','Transport':'#E8EDF5',
-  'Needs':'#EDE0CC','Personal Wants':'#F5E8E0',"Mama Allowance":'#EDE8E0',
+  'Salary':'#846E6A','Parents':'#EDE0CC','Fixed Deposit':'#F5EBD8','Others':'#EAF0E8',
+  'Food & Drinks':'#DDAA4C','Groceries':'#414634','Family Meals & Gifts':'#A17402','Transport':'#274166',
+  'Needs':'#714132','Personal Wants':'#561F14',"Mama Allowance":'#F7F0ED',
   'Friends':'#EAF0E8','Travel':'#E8EDF5','Subscriptions':'#F0E8D8',
 };
 const CAT_ICONS = {
-  'Salary':'💼','Parents':'❤️','Fixed Deposit':'🏦','Others':'💰',
-  'Food & Drinks':'🍜','Groceries':'🛒','Family Meals & Gifts':'🍽️','Transport':'🚗',
-  'Needs':'🛍️','Personal Wants':'✨',"Mama Allowance":'👩','Friends':'👥',
-  'Travel':'✈️','Subscriptions':'📱',
+  'Salary':'💼','Parents':'🧧','Fixed Deposit':'📈','Others':'⚙️',
+  'Food & Drinks':'🍚','Groceries':'🥬','Family Meals & Gifts':'🏠','Transport':'🚙',
+  'Needs':'🧴','Personal Wants':'💅🏻',"Mama Allowance":'❤️','Friends':'👯‍♀️',
+  'Travel':'✈️','Subscriptions':'📁',
 };
 
 function catColor(cat) { return CAT_COLORS[cat] || FALLBACK_COLORS[0]; }
