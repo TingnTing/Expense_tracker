@@ -212,7 +212,6 @@
     <button class="nav-btn"         onclick="switchView('transactions',this)">Transactions</button>
     <button class="nav-btn"         onclick="switchView('budget',this)">Budget</button>
     <button class="nav-btn"         onclick="switchView('rank',this)">Rankings</button>
-    <button class="nav-btn"         onclick="switchView('monthview',this)">Month Overview</button>
     <button class="nav-btn"         onclick="switchView('wordfreq',this)">Frequency</button>
   </div>
 
@@ -270,6 +269,30 @@
             <!-- Dynamic content inserted here -->
           </div>
         </div>
+      </div>
+
+      <!-- Monthly breakdown section -->
+      <div class="chart-wrap" style="margin-top:1.5rem;margin-bottom:1rem;">
+        <div class="chart-header" style="margin-bottom:0;">
+          <div class="chart-title">Monthly breakdown</div>
+          <div style="font-size:11px;color:var(--ink-soft);" id="monthview-year"></div>
+        </div>
+      </div>
+      <div class="month-table-wrap">
+        <table class="month-table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th class="num">Income</th>
+              <th class="num">Expenses</th>
+              <th class="num">Net Savings</th>
+              <th class="num">Savings Rate</th>
+            </tr>
+          </thead>
+          <tbody id="month-table-body">
+            <tr><td colspan="5"><div class="empty-state" style="padding:2rem;"><div class="big">🙅🏻‍♀️</div>Don't have!</div></td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -334,32 +357,6 @@
     </div>
     <div class="rank-list" id="rank-list">
       <div class="empty-state"><div class="big">🏆</div>Where's your data...</div>
-    </div>
-  </div>
-
-  <!-- ═══════════════ MONTH OVERVIEW ═══════════════ -->
-  <div id="view-monthview" class="view">
-    <div class="chart-wrap" style="margin-bottom:1rem;">
-      <div class="chart-header" style="margin-bottom:0;">
-        <div class="chart-title">Monthly breakdown</div>
-        <div style="font-size:11px;color:var(--ink-soft);" id="monthview-year"></div>
-      </div>
-    </div>
-    <div class="month-table-wrap">
-      <table class="month-table">
-        <thead>
-          <tr>
-            <th>Month</th>
-            <th class="num">Income</th>
-            <th class="num">Expenses</th>
-            <th class="num">Net Savings</th>
-            <th class="num">Savings Rate</th>
-          </tr>
-        </thead>
-        <tbody id="month-table-body">
-          <tr><td colspan="5"><div class="empty-state" style="padding:2rem;"><div class="big">🙅🏻‍♀️</div>Don't have!</div></td></tr>
-        </tbody>
-      </table>
     </div>
   </div>
 
@@ -681,13 +678,7 @@ function renderWordFrequencyList(items) {
     count.style.minWidth = '25px';
     count.style.textAlign = 'right';
     
-    const amount = document.createElement('span');
-    amount.textContent = rm(item.total);
-    amount.style.minWidth = '70px';
-    amount.style.textAlign = 'right';
-    
     meta.appendChild(count);
-    meta.appendChild(amount);
     
     wordRow.appendChild(wordName);
     wordRow.appendChild(meta);
