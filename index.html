@@ -116,7 +116,7 @@
   .tx-date { font-size: 11px; color: var(--ink-soft); margin-top: 1px; }
 
   /* BUDGET */
-  .budget-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .budget-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .budget-card { background: #fff; border-radius: 10px; border: 1px solid var(--linen); padding: 1rem; }
   .budget-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 0.5rem; }
   .budget-cat { font-size: 13px; font-weight: 500; }
@@ -219,7 +219,6 @@
     <button class="nav-btn active"  onclick="switchView('overview',this)">Overview</button>
     <button class="nav-btn"         onclick="switchView('transactions',this)">Transactions</button>
     <button class="nav-btn"         onclick="switchView('budget',this)">Budget</button>
-    <button class="nav-btn"         onclick="switchView('rank',this)">Rankings</button>
     <button class="nav-btn"         onclick="switchView('wordfreq',this)">Calendar</button>
   </div>
 
@@ -263,7 +262,7 @@
       </div>
       <div class="donut-section" style="display:flex;gap:12px;flex-wrap:wrap;width:100%;">
         <div class="donut-card" style="flex:1 1 0;width:0;">
-          <div class="chart-title" style="margin-bottom:12px;font-size:13px;">By category</div>
+          <div class="chart-title" style="margin-bottom:12px;font-size:13px;">Category</div>
           <div style="position:relative;width:100%;height:160px;">
             <canvas id="donutChart"></canvas>
           </div>
@@ -280,12 +279,7 @@
       </div>
 
       <!-- Monthly breakdown section -->
-      <div class="chart-wrap" style="margin-top:1.5rem;margin-bottom:1rem;">
-        <div class="chart-header" style="margin-bottom:0;">
-          <div class="chart-title">Monthly breakdown</div>
-          <div style="font-size:11px;color:var(--ink-soft);" id="monthview-year"></div>
-        </div>
-      </div>
+      <div id="monthview-year" style="display:none;"></div>
       <div class="month-table-wrap">
         <table class="month-table">
           <thead>
@@ -310,10 +304,15 @@
     <div class="transactions">
       <div class="tx-header">
         <div style="font-size:15px;font-weight:500;">Transactions</div>
-        <div class="tx-filter" id="tx-type-chips">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button id="sort-amount-btn" onclick="toggleSortAmount(this)"
+            style="padding:4px 10px;border-radius:20px;font-size:11px;border:1px solid var(--khaki);background:none;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--ink-soft);transition:all 0.15s;"
+            title="Sort by amount">↕ Amount</button>
+          <div class="tx-filter" id="tx-type-chips">
           <button class="filter-chip active" onclick="setTxType('all',this)">All</button>
           <button class="filter-chip" onclick="setTxType('credit',this)">Income</button>
           <button class="filter-chip" onclick="setTxType('debit',this)">Expenses</button>
+        </div>
         </div>
       </div>
       <div class="tx-month-filter" style="padding:0.6rem 1.25rem; border-bottom:0.5px solid var(--border); display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
@@ -350,37 +349,28 @@
     </div>
   </div>
 
-  <!-- ═══════════════ RANK ═══════════════ -->
-  <div id="view-rank" class="view">
-    <div class="chart-wrap" style="margin-bottom:1rem;">
-      <div class="chart-header" style="margin-bottom:0;">
-        <div class="chart-title">Top 10 expenses — 2026</div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <select id="rank-month-filter"
-            onchange="setGlobalMonth(this.value)"
-            style="padding:5px 10px;border-radius:8px;border:1px solid var(--linen);
-                   font-family:'DM Sans',sans-serif;font-size:12px;
-                   background:var(--cream);color:var(--ink);cursor:pointer;">
-            <option value="all">All months</option>
-          </select>
-          <select id="rank-cat-filter"
-            onchange="setGlobalCat(this.value)"
-            style="padding:5px 10px;border-radius:8px;border:1px solid var(--linen);
-                   font-family:'DM Sans',sans-serif;font-size:12px;
-                   background:var(--cream);color:var(--ink);cursor:pointer;">
-            <option value="all">All categories</option>
-          </select>
-          <div style="font-size:11px;color:var(--ink-soft);" id="rank-count"></div>
+  <!-- ═══════════════ FREQUENCY ═══════════════ -->
+  <div id="view-wordfreq" class="view">
+    <!-- Calendar summary metrics -->
+    <div id="cal-summary" style="display:none;margin-bottom:1rem;">
+      <div class="metrics">
+        <div class="metric gold">
+          <div class="metric-label">Total Income</div>
+          <div class="metric-value" id="cal-m-income">—</div>
+          <div class="metric-sub" id="cal-m-income-sub">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Total Expenses</div>
+          <div class="metric-value" id="cal-m-spend">—</div>
+          <div class="metric-sub" id="cal-m-spend-sub">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Net Savings</div>
+          <div class="metric-value" id="cal-m-savings">—</div>
+          <div class="metric-delta" id="cal-m-savings-d">—</div>
         </div>
       </div>
     </div>
-    <div class="rank-list" id="rank-list">
-      <div class="empty-state"><div class="big">🏆</div>Where's your data...</div>
-    </div>
-  </div>
-
-  <!-- ═══════════════ FREQUENCY ═══════════════ -->
-  <div id="view-wordfreq" class="view">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
       <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="stepCalMonth(-1)" id="cal-prev-btn" style="width:28px;height:28px;border-radius:7px;border:1px solid var(--linen);background:var(--cream-dark);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--ink);transition:all 0.15s;" onmouseover="this.style.background='var(--espresso)';this.style.color='var(--cream-dark)'" onmouseout="this.style.background='var(--cream-dark)';this.style.color='var(--ink)'">‹</button>
@@ -602,8 +592,29 @@ function buildCalendar() {
   if (!transactions.length) {
     container.innerHTML = '<div class="empty-state"><div class="big">📅</div>No data yet. Import a file to see the calendar.</div>';
     document.getElementById('cal-detail').style.display = 'none';
+    document.getElementById('cal-summary').style.display = 'none';
     return;
   }
+
+  // Update calendar summary metrics for the current month
+  const monthKey = calYear + '-' + String(calMonth).padStart(2, '0');
+  const monthTx = transactions.filter(t => t.monthKey === monthKey);
+  const calIncome = monthTx.filter(t => t.type === 'credit').reduce((s, t) => s + t.amount, 0);
+  const calSpend  = monthTx.filter(t => t.type === 'debit').reduce((s, t) => s + t.amount, 0);
+  const calSavings = calIncome - calSpend;
+  const calRate = calIncome > 0 ? Math.round((calSavings / calIncome) * 100) : 0;
+  const MONTH_NAMES_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const calLabel = MONTH_NAMES_SHORT[calMonth - 1] + ' ' + calYear;
+
+  document.getElementById('cal-m-income').textContent = rm(calIncome);
+  document.getElementById('cal-m-income-sub').textContent = calLabel;
+  document.getElementById('cal-m-spend').textContent = rm(calSpend);
+  document.getElementById('cal-m-spend-sub').textContent = monthTx.filter(t => t.type === 'debit').length + ' transactions';
+  document.getElementById('cal-m-savings').textContent = rm(calSavings);
+  const calDeltaEl = document.getElementById('cal-m-savings-d');
+  calDeltaEl.textContent = calRate + '% savings rate';
+  calDeltaEl.className = 'metric-delta ' + (calSavings >= 0 ? 'up' : 'down');
+  document.getElementById('cal-summary').style.display = 'block';
 
   const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const DAYS_IN_MONTH = new Date(calYear, calMonth, 0).getDate();
@@ -739,12 +750,18 @@ function refreshAll() {
     buildDonut();
     buildSavingsPanel();
   }
-  txTypeFilter = 'all'; txCatFilter = 'all'; txMonthFilter = 'all';
+  txTypeFilter = 'all'; txCatFilter = 'all'; txMonthFilter = 'all'; txSortByAmount = false;
+  const sortBtn = document.getElementById('sort-amount-btn');
+  if (sortBtn) {
+    sortBtn.style.background = 'none';
+    sortBtn.style.color = 'var(--ink-soft)';
+    sortBtn.style.borderColor = 'var(--khaki)';
+    sortBtn.textContent = '↕ Amount';
+  }
   populateTxMonthFilter();         // populates both month dropdowns + cat dropdowns
   buildTransactions();
   document.querySelectorAll('#tx-type-chips .filter-chip').forEach((b,i) => b.classList.toggle('active', i===0));
   buildBudget();
-  buildRank();
   buildMonthView();
   buildCalendar();
 }
@@ -825,29 +842,40 @@ function buildDonut() {
 }
 
 function buildSavingsPanel() {
-  const panel   = document.getElementById('savings-panel');
-  const allKeys3 = [...new Set(transactions.map(t=>t.monthKey))].sort();
-  const curKey3  = allKeys3[allKeys3.length - 1] || '';
-  const curTx    = transactions.filter(t=>t.monthKey===curKey3);
-  const totalIn  = curTx.filter(t=>t.type==='credit').reduce((s,t)=>s+t.amount,0);
-  const totalOut = curTx.filter(t=>t.type==='debit').reduce((s,t)=>s+t.amount,0);
-  const savings  = Math.max(totalIn-totalOut, 0);
-  const rate     = totalIn > 0 ? Math.round((savings/totalIn)*100) : 0;
-  const spendPct = totalIn > 0 ? Math.min(Math.round((totalOut/totalIn)*100),100) : 0;
-  panel.innerHTML = `
-    <div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);margin-bottom:4px;"><span>Income</span><span style="font-family:'DM Mono',monospace;">${rm(totalIn)}</span></div>
-      <div class="progress-track"><div class="progress-fill" style="width:100%;background:#3D2314;"></div></div>
+  const panel = document.getElementById('savings-panel');
+
+  if (!transactions.length) {
+    panel.innerHTML = '';
+    return;
+  }
+
+  // Get latest month
+  const allKeys = [...new Set(transactions.map(t => t.monthKey))].sort();
+  const currentMonth = allKeys[allKeys.length - 1];
+
+  // ONLY expenses
+  const monthTx = transactions.filter(t =>
+    t.monthKey === currentMonth && t.type === 'debit'
+  );
+
+  // Group by category
+  const catTotals = {};
+  monthTx.forEach(t => {
+    catTotals[t.cat] = (catTotals[t.cat] || 0) + t.amount;
+  });
+
+  // Convert → sort → top 4
+  const topCats = Object.entries(catTotals)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 7);
+
+  // Render
+  panel.innerHTML = topCats.map(([cat, amt]) => `
+    <div style="display:flex;justify-content:space-between;font-size:12px;">
+      <span>${cat}</span>
+      <span style="font-family:'DM Mono',monospace;">${rm(amt)}</span>
     </div>
-    <div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);margin-bottom:4px;"><span>Spent</span><span style="font-family:'DM Mono',monospace;">${rm(totalOut)}</span></div>
-      <div class="progress-track"><div class="progress-fill" style="width:${spendPct}%;background:#C4A882;"></div></div>
-    </div>
-    <div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);margin-bottom:4px;"><span>Saved</span><span style="font-family:'DM Mono',monospace;">${rm(savings)}</span></div>
-      <div class="progress-track"><div class="progress-fill" style="width:${rate}%;background:#9B7243;"></div></div>
-    </div>
-    <div style="font-family:'DM Serif Display',serif;font-size:22px;color:#3D2314;">${rate}% saved</div>`;
+  `).join('');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -856,6 +884,7 @@ function buildSavingsPanel() {
 let txTypeFilter  = 'all';
 let txCatFilter   = 'all';
 let txMonthFilter = 'all';
+let txSortByAmount = false;
 
 // Set month globally and sync all dropdowns
 function setGlobalMonth(month) {
@@ -863,7 +892,6 @@ function setGlobalMonth(month) {
   syncMonthDropdowns(month);
   rebuildCatDropdowns();
   buildTransactions();
-  buildRank();
 }
 
 // Set category globally and sync all dropdowns
@@ -871,11 +899,10 @@ function setGlobalCat(cat) {
   txCatFilter = cat;
   syncCatDropdowns(cat);
   buildTransactions();
-  buildRank();
 }
 
 function syncMonthDropdowns(value) {
-  ['tx-month-dropdown','rank-month-filter'].forEach(function(id) {
+  ['tx-month-dropdown'].forEach(function(id) {
     const el = document.getElementById(id);
     if (el && el.value !== value) el.value = value;
   });
@@ -883,10 +910,26 @@ function syncMonthDropdowns(value) {
 
 function syncCatDropdowns(value) {
   const v = value !== undefined ? value : txCatFilter;
-  ['tx-cat-dropdown','rank-cat-filter'].forEach(function(id) {
+  ['tx-cat-dropdown'].forEach(function(id) {
     const el = document.getElementById(id);
     if (el && el.value !== v) el.value = v;
   });
+}
+
+function toggleSortAmount(btn) {
+  txSortByAmount = !txSortByAmount;
+  if (txSortByAmount) {
+    btn.style.background = 'var(--espresso)';
+    btn.style.color = 'var(--cream-dark)';
+    btn.style.borderColor = 'var(--espresso)';
+    btn.textContent = '↓ Amount';
+  } else {
+    btn.style.background = 'none';
+    btn.style.color = 'var(--ink-soft)';
+    btn.style.borderColor = 'var(--khaki)';
+    btn.textContent = '↕ Amount';
+  }
+  buildTransactions();
 }
 
 function buildTransactions() {
@@ -897,9 +940,15 @@ function buildTransactions() {
   }
 
   let src = [...transactions].sort((a, b) => {
-    const da = a.parsedDate instanceof Date ? a.parsedDate : new Date(0);
-    const db = b.parsedDate instanceof Date ? b.parsedDate : new Date(0);
-    return db - da;
+    if (txSortByAmount) {
+      // Sort by amount DESC
+      return b.amount - a.amount;
+    } else {
+      // Default: sort by date ASC
+      const da = a.parsedDate instanceof Date ? a.parsedDate : new Date(a.date || 0);
+      const db = b.parsedDate instanceof Date ? b.parsedDate : new Date(b.date || 0);
+      return da - db;
+    }
   });
 
   if (txTypeFilter  !== 'all') src = src.filter(t => t.type === txTypeFilter);
@@ -929,7 +978,6 @@ function setTxType(type, btn) {
   btn.classList.add('active');
   rebuildCatDropdowns();
   buildTransactions();
-  buildRank();
 }
 
 function rebuildCatDropdowns() {
@@ -941,7 +989,7 @@ function rebuildCatDropdowns() {
   const opts = '<option value="all">All categories</option>' +
     cats.map(c => `<option value="${c}">${c}</option>`).join('');
 
-  ['tx-cat-dropdown','rank-cat-filter'].forEach(function(id) {
+  ['tx-cat-dropdown'].forEach(function(id) {
     const el = document.getElementById(id);
     if (el) { el.innerHTML = opts; el.value = txCatFilter; }
   });
@@ -997,11 +1045,10 @@ function buildBudget() {
     return `<div class="budget-card">
       <div class="budget-row">
         <div class="budget-cat">${catIcon(cat)} ${cat}</div>
-        <div class="budget-nums" style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px;">
+        <div class="budget-nums" style="display:flex;justify-content:flex-end;align-items:baseline;font-size:13px;gap:6px;text-align:right;">
           <span style="font-weight:600;color:var(--ink);">${rm(spent)}</span>
           <span style="color:var(--ink-faint);font-size:12px;">/ ${rm(limit)}</span>
         </div>
-        ${over ? `<span class="budget-over">+${rm(spent-limit)} over</span>` : ''}
       </div>
       <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${color};"></div></div>
     </div>`;
@@ -1016,7 +1063,7 @@ function populateTxMonthFilter() {
       return `<option value="${k}">${label}</option>`;
     }).join('');
 
-  ['tx-month-dropdown','rank-month-filter'].forEach(function(id) {
+  ['tx-month-dropdown'].forEach(function(id) {
     const sel = document.getElementById(id);
     if (!sel) return;
     const current = sel.value;
